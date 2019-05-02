@@ -145,6 +145,7 @@ function receivedMessage(event) {
   if (!sessionIds.has(senderID)) {
     sessionIds.set(senderID, uuid.v1());
   }
+
   //console.log("Received message for user %d and page %d at %d with message:", senderID, recipientID, timeOfMessage);
   //console.log(JSON.stringify(message));
 
