@@ -30,8 +30,16 @@ if (!config.FB_APP_SECRET) {
   throw new Error("missing FB_APP_SECRET");
 }
 if (!config.SERVER_URL) {
-  //used for ink to static files
   throw new Error("missing SERVER_URL");
+}
+if (!config.SENGRID_API_KEY) {
+  throw new Error("missing SENGRID_API_KEY");
+}
+if (!config.EMAIL_FROM) {
+  throw new Error("missing EMAIL_FROM");
+}
+if (!config.EMAIL_TO) {
+  throw new Error("missing EMAIL_TO");
 }
 
 app.set("port", process.env.PORT || 5000);
@@ -69,12 +77,12 @@ const sessionClient = new dialogflow.SessionsClient({
 const sessionIds = new Map();
 
 // Index route
-app.get("/", function(req, res) {
+app.get("/", (req, res) => {
   res.send("Hello world, I am a chat bot");
 });
 
 // for Facebook verification
-app.get("/webhook/", function(req, res) {
+app.get("/webhook/", (req, res) => {
   console.log("request");
   if (
     req.query["hub.mode"] === "subscribe" &&
@@ -95,7 +103,7 @@ app.get("/webhook/", function(req, res) {
  * https://developers.facebook.com/docs/messenger-platform/product-overview/setup#subscribe_app
  *
  */
-app.post("/webhook/", function(req, res) {
+app.post("/webhook/", (req, res) => {
   var data = req.body;
   console.log(JSON.stringify(data));
 
@@ -145,7 +153,6 @@ function receivedMessage(event) {
   if (!sessionIds.has(senderID)) {
     sessionIds.set(senderID, uuid.v1());
   }
-
   //console.log("Received message for user %d and page %d at %d with message:", senderID, recipientID, timeOfMessage);
   //console.log(JSON.stringify(message));
 
@@ -210,6 +217,70 @@ function handleDialogFlowAction(
   parameters
 ) {
   switch (action) {
+    case "detailed-application":
+      if (
+        isDefined(contexts[0]) &&
+        (contexts[0].name.includes("job_application") ||
+          contexts[0].name.includes(
+            "job-application-details_dialog_context"
+          )) &&
+        contexts[0].parameters
+      ) {
+        let phone_number =
+          isDefined(contexts[0].parameters.fields["phone-number"]) &&
+          contexts[0].parameters.fields["phone-number"] != ""
+            ? contexts[0].parameters.fields["phone-number"].stringValue
+            : "";
+        let user_name =
+          isDefined(contexts[0].parameters.fields["user-name"]) &&
+          contexts[0].parameters.fields["user-name"] != ""
+            ? contexts[0].parameters.fields["user-name"].stringValue
+            : "";
+        let previous_job =
+          isDefined(contexts[0].parameters.fields["previous-job"]) &&
+          contexts[0].parameters.fields["previous-job"] != ""
+            ? contexts[0].parameters.fields["previous-job"].stringValue
+            : "";
+        let years_of_experience =
+          isDefined(contexts[0].parameters.fields["years-of-experience"]) &&
+          contexts[0].parameters.fields["years-of-experience"] != ""
+            ? contexts[0].parameters.fields["years-of-experience"].stringValue
+            : "";
+        let job_vacancy =
+          isDefined(contexts[0].parameters.fields["job-vacancy"]) &&
+          contexts[0].parameters.fields["job-vacancy"] != ""
+            ? contexts[0].parameters.fields["job-vacancy"].stringValue
+            : "";
+        if (
+          phone_number != "" &&
+          user_name != "" &&
+          previous_job != "" &&
+          years_of_experience != "" &&
+          job_vacancy != ""
+        ) {
+          let emailContent =
+            "A new job enquiery from " +
+            user_name +
+            " for the job: " +
+            job_vacancy +
+            ".<br> Previous job position: " +
+            previous_job +
+            "." +
+            ".<br> Years of experience: " +
+            years_of_experience +
+            "." +
+            ".<br> Phone number: " +
+            phone_number +
+            ".";
+
+          sendEmail("New job application", emailContent);
+
+          handleMessages(messages, sender);
+        } else {
+          handleMessages(messages, sender);
+        }
+      }
+      break;
     default:
       //unhandled action, just send back the text
       handleMessages(messages, sender);
@@ -381,7 +452,6 @@ function sendTextMessage(recipientId, text) {
 
 /*
  * Send an image using the Send API.
- *
  */
 function sendImageMessage(recipientId, imageUrl) {
   var messageData = {
@@ -403,7 +473,6 @@ function sendImageMessage(recipientId, imageUrl) {
 
 /*
  * Send a Gif using the Send API.
- *
  */
 function sendGifMessage(recipientId) {
   var messageData = {
@@ -425,7 +494,6 @@ function sendGifMessage(recipientId) {
 
 /*
  * Send audio using the Send API.
- *
  */
 function sendAudioMessage(recipientId) {
   var messageData = {
@@ -491,7 +559,6 @@ function sendFileMessage(recipientId, fileName) {
 
 /*
  * Send a button message using the Send API.
- *
  */
 function sendButtonMessage(recipientId, text, buttons) {
   var messageData = {
@@ -574,7 +641,6 @@ function sendReceiptMessage(
 
 /*
  * Send a message with Quick Reply buttons.
- *
  */
 function sendQuickReply(recipientId, text, replies, metadata) {
   var messageData = {
@@ -593,7 +659,6 @@ function sendQuickReply(recipientId, text, replies, metadata) {
 
 /*
  * Send a read receipt to indicate the message has been read
- *
  */
 function sendReadReceipt(recipientId) {
   var messageData = {
@@ -608,7 +673,6 @@ function sendReadReceipt(recipientId) {
 
 /*
  * Turn typing indicator on
- *
  */
 function sendTypingOn(recipientId) {
   var messageData = {
@@ -623,7 +687,6 @@ function sendTypingOn(recipientId) {
 
 /*
  * Turn typing indicator off
- *
  */
 function sendTypingOff(recipientId) {
   var messageData = {
@@ -638,7 +701,6 @@ function sendTypingOff(recipientId) {
 
 /*
  * Send a message with the account linking call-to-action
- *
  */
 function sendAccountLinking(recipientId) {
   var messageData = {
@@ -668,7 +730,6 @@ function sendAccountLinking(recipientId) {
 /*
  * Call the Send API. The message data goes in the body. If successful, we'll
  * get the message id in a response
- *
  */
 function callSendAPI(messageData) {
   request(
@@ -714,7 +775,6 @@ function callSendAPI(messageData) {
  *
  * This event is called when a postback is tapped on a Structured Message.
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/postback-received
- *
  */
 function receivedPostback(event) {
   var senderID = event.sender.id;
@@ -749,7 +809,6 @@ function receivedPostback(event) {
  *
  * This event is called when a previously-sent message has been read.
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-read
- *
  */
 function receivedMessageRead(event) {
   var senderID = event.sender.id;
@@ -772,7 +831,6 @@ function receivedMessageRead(event) {
  * This event is called when the Link Account or UnLink Account action has been
  * tapped.
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/account-linking
- *
  */
 function receivedAccountLink(event) {
   var senderID = event.sender.id;
@@ -795,7 +853,6 @@ function receivedAccountLink(event) {
  *
  * This event is sent to confirm the delivery of a message. Read more about
  * these fields at https://developers.facebook.com/docs/messenger-platform/webhook-reference/message-delivered
- *
  */
 function receivedDeliveryConfirmation(event) {
   var senderID = event.sender.id;
@@ -823,7 +880,6 @@ function receivedDeliveryConfirmation(event) {
  * The value for 'optin.ref' is defined in the entry point. For the "Send to
  * Messenger" plugin, it is the 'data-ref' field. Read more at
  * https://developers.facebook.com/docs/messenger-platform/webhook-reference/authentication
- *
  */
 function receivedAuthentication(event) {
   var senderID = event.sender.id;
@@ -857,7 +913,6 @@ function receivedAuthentication(event) {
  * callback in the x-hub-signature field, located in the header.
  *
  * https://developers.facebook.com/docs/graph-api/webhooks#setup
- *
  */
 function verifyRequestSignature(req, res, buf) {
   var signature = req.headers["x-hub-signature"];
@@ -878,6 +933,30 @@ function verifyRequestSignature(req, res, buf) {
       throw new Error("Couldn't validate the request signature.");
     }
   }
+}
+
+function sendEmail(subject, content) {
+  console.log("sending email");
+  var helper = require("sendgrid").mail;
+
+  var from_email = new helper.Email(config.EMAIL_FROM);
+  var to_email = new helper.Email(config.EMAIL_TO);
+  var subject = subject;
+  var content = new helper.Content("text/html", content);
+  var mail = new helper.Mail(from_email, subject, to_email, content);
+
+  var sg = require("sendgrid")(config.SENGRID_API_KEY);
+  var request = sg.emptyRequest({
+    method: "POST",
+    path: "/v3/mail/send",
+    body: mail.toJSON()
+  });
+
+  sg.API(request, function(error, response) {
+    console.log(response.statusCode);
+    console.log(response.body);
+    console.log(response.headers);
+  });
 }
 
 function isDefined(obj) {
