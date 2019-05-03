@@ -168,7 +168,7 @@ function receivedMessage(event) {
   }
 
   console.log(
-    "Received message for user %d and page %d at %d with message:",
+    "Received message for user %d and page %d at %d.",
     senderID,
     recipientID,
     timeOfMessage
@@ -401,6 +401,7 @@ function handleMessages(messages, sender) {
 }
 
 function handleDialogFlowResponse(sender, response) {
+  console.log("Handling DialogFlow response...");
   let responseText = response.fulfillmentMessages.fulfillmentText;
 
   let messages = response.fulfillmentMessages;
@@ -451,6 +452,7 @@ async function sendToDialogFlow(sender, textString, params) {
     const responses = await sessionClient.detectIntent(request);
 
     const result = responses[0].queryResult;
+    console.log("DialogFlow result response:", JSON.stringify(result));
     handleDialogFlowResponse(sender, result);
   } catch (e) {
     console.log("error");
