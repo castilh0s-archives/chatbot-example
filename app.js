@@ -122,7 +122,7 @@ app.post("/webhook/", function(req, res) {
 
       // Iterate over each messaging event
       pageEntry.messaging.forEach(function(messagingEvent) {
-        console.log(`Messagins event: ${messagingEvent}`);
+        console.log(`Messaging event: ${JSON.stringify(messagingEvent)}`);
 
         if (messagingEvent.optin) {
           console.log("Received authentication");
@@ -412,10 +412,13 @@ function handleDialogFlowResponse(sender, response) {
   sendTypingOff(sender);
 
   if (isDefined(action)) {
+    console.log("Handling DialogFlow action");
     handleDialogFlowAction(sender, action, messages, contexts, parameters);
   } else if (isDefined(messages)) {
+    console.log("Handling messages");
     handleMessages(messages, sender);
   } else if (responseText == "" && !isDefined(action)) {
+    console.log("Sending text message");
     //dialogflow could not evaluate input.
     sendTextMessage(
       sender,
