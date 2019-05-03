@@ -301,7 +301,7 @@ function handleDialogFlowAction(
           handleMessages(messages, sender);
         }
       } else {
-        console.log("** Else");
+        handleMessages(messages, sender);
       }
       break;
     default:
