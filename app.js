@@ -246,9 +246,8 @@ function handleDialogFlowAction(
       if (
         isDefined(contexts[0]) &&
         (contexts[0].name.includes("job_application") ||
-          contexts[0].name.includes(
-            "job-application-details_dialog_context"
-          )) &&
+          contexts[0].name.includes("job-application-details_dialog_context") ||
+          contexts[0].name.includes("dialog_context")) &&
         contexts[0].parameters
       ) {
         console.log("I'm a job_application");
