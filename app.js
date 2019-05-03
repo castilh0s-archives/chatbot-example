@@ -109,25 +109,38 @@ app.post("/webhook/", function(req, res) {
 
   // Make sure this is a page subscription
   if (data.object == "page") {
+    console.log("Yes, the object is a page...");
+
     // Iterate over each entry
     // There may be multiple if batched
     data.entry.forEach(function(pageEntry) {
       var pageID = pageEntry.id;
       var timeOfEvent = pageEntry.time;
 
+      console.log(`Page ID: ${pageID}`);
+      console.log(`Time of Event: ${timeOfEvent}`);
+
       // Iterate over each messaging event
       pageEntry.messaging.forEach(function(messagingEvent) {
+        console.log(`Messagins event: ${messagingEvent}`);
+
         if (messagingEvent.optin) {
+          console.log("Received authentication");
           receivedAuthentication(messagingEvent);
         } else if (messagingEvent.message) {
+          console.log("Received message");
           receivedMessage(messagingEvent);
         } else if (messagingEvent.delivery) {
+          console.log("Received delivery confirmation");
           receivedDeliveryConfirmation(messagingEvent);
         } else if (messagingEvent.postback) {
+          console.log("Received postback");
           receivedPostback(messagingEvent);
         } else if (messagingEvent.read) {
+          console.log("Received message read");
           receivedMessageRead(messagingEvent);
         } else if (messagingEvent.account_linking) {
+          console.log("Received account link");
           receivedAccountLink(messagingEvent);
         } else {
           console.log(
@@ -448,7 +461,7 @@ function sendTextMessage(recipientId, text) {
     }
   };
 
-  console.log("Sending an text message...")
+  console.log("Sending an text message...");
   callSendAPI(messageData);
 }
 
@@ -470,7 +483,7 @@ function sendImageMessage(recipientId, imageUrl) {
     }
   };
 
-  console.log("Sending a image message...")
+  console.log("Sending a image message...");
   callSendAPI(messageData);
 }
 
@@ -492,7 +505,7 @@ function sendGifMessage(recipientId) {
     }
   };
 
-  console.log("Sending an gif message...")
+  console.log("Sending an gif message...");
   callSendAPI(messageData);
 }
 
@@ -514,7 +527,7 @@ function sendAudioMessage(recipientId) {
     }
   };
 
-  console.log("Sending a audio message...")
+  console.log("Sending a audio message...");
   callSendAPI(messageData);
 }
 
@@ -537,7 +550,7 @@ function sendVideoMessage(recipientId, videoName) {
     }
   };
 
-  console.log("Sending an video message...")
+  console.log("Sending an video message...");
   callSendAPI(messageData);
 }
 
@@ -560,7 +573,7 @@ function sendFileMessage(recipientId, fileName) {
     }
   };
 
-  console.log("Sending an file message...")
+  console.log("Sending an file message...");
   callSendAPI(messageData);
 }
 
@@ -584,7 +597,7 @@ function sendButtonMessage(recipientId, text, buttons) {
     }
   };
 
-  console.log("Sending an button message...")
+  console.log("Sending an button message...");
   callSendAPI(messageData);
 }
 
@@ -604,7 +617,7 @@ function sendGenericMessage(recipientId, elements) {
     }
   };
 
-  console.log("Sending an generic message...")
+  console.log("Sending an generic message...");
   callSendAPI(messageData);
 }
 
@@ -645,7 +658,7 @@ function sendReceiptMessage(
     }
   };
 
-  console.log("Sending an receipt message...")
+  console.log("Sending an receipt message...");
   callSendAPI(messageData);
 }
 
@@ -664,7 +677,7 @@ function sendQuickReply(recipientId, text, replies, metadata) {
     }
   };
 
-  console.log("Sending an quick reply...")
+  console.log("Sending an quick reply...");
   callSendAPI(messageData);
 }
 
@@ -679,7 +692,7 @@ function sendReadReceipt(recipientId) {
     sender_action: "mark_seen"
   };
 
-  console.log("Sending an read receipt...")
+  console.log("Sending an read receipt...");
   callSendAPI(messageData);
 }
 
@@ -694,7 +707,7 @@ function sendTypingOn(recipientId) {
     sender_action: "typing_on"
   };
 
-  console.log("Sending an typing on...")
+  console.log("Sending an typing on...");
   callSendAPI(messageData);
 }
 
@@ -709,7 +722,7 @@ function sendTypingOff(recipientId) {
     sender_action: "typing_off"
   };
 
-  console.log("Sending an typing off...")
+  console.log("Sending an typing off...");
   callSendAPI(messageData);
 }
 
@@ -738,7 +751,7 @@ function sendAccountLinking(recipientId) {
     }
   };
 
-  console.log("Sending an account linking...")
+  console.log("Sending an account linking...");
   callSendAPI(messageData);
 }
 
