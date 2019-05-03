@@ -247,6 +247,7 @@ function handleDialogFlowAction(
           )) &&
         contexts[0].parameters
       ) {
+        console.log("I'm a job_application");
         let phone_number =
           isDefined(contexts[0].parameters.fields["phone-number"]) &&
           contexts[0].parameters.fields["phone-number"] != ""
@@ -279,6 +280,7 @@ function handleDialogFlowAction(
           previous_job != "" &&
           years_of_experience == ""
         ) {
+          console.log("Years of experience quick replies");
           let replies = [
             {
               content_type: "text",
@@ -305,6 +307,7 @@ function handleDialogFlowAction(
           years_of_experience != "" &&
           job_vacancy != ""
         ) {
+          console.log("Creating the e-mail body");
           let emailContent =
             "A new job enquiery from " +
             user_name +
