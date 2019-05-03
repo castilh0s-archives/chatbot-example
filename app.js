@@ -77,12 +77,12 @@ const sessionClient = new dialogflow.SessionsClient({
 const sessionIds = new Map();
 
 // Index route
-app.get("/", (req, res) => {
+app.get("/", function(req, res) {
   res.send("Hello world, I am a chat bot");
 });
 
 // for Facebook verification
-app.get("/webhook/", (req, res) => {
+app.get("/webhook/", function(req, res) {
   console.log("request");
   if (
     req.query["hub.mode"] === "subscribe" &&
@@ -103,7 +103,7 @@ app.get("/webhook/", (req, res) => {
  * https://developers.facebook.com/docs/messenger-platform/product-overview/setup#subscribe_app
  *
  */
-app.post("/webhook/", (req, res) => {
+app.post("/webhook/", function(req, res) {
   var data = req.body;
   console.log(JSON.stringify(data));
 
