@@ -236,9 +236,13 @@ function handleDialogFlowAction(
   contexts,
   parameters
 ) {
-  console.log("Handling action: ", action);
+  console.log("Handling action:", action);
   switch (action) {
     case "detailed-application":
+      console.log("This is the context:", JSON.stringify(contexts[0]));
+      console.log("Ok, here we go...");
+      console.log("Context is defined?", isDefined(contexts[0]));
+      console.log("");
       if (
         isDefined(contexts[0]) &&
         (contexts[0].name.includes("job_application") ||
@@ -330,6 +334,7 @@ function handleDialogFlowAction(
           handleMessages(messages, sender);
         }
       } else {
+        console.log("Why i'm not defined?");
         handleMessages(messages, sender);
       }
       break;
