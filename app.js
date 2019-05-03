@@ -236,6 +236,7 @@ function handleDialogFlowAction(
   contexts,
   parameters
 ) {
+  console.log("Handling action: ", action);
   switch (action) {
     case "detailed-application":
       if (
@@ -302,7 +303,7 @@ function handleDialogFlowAction(
       }
       break;
     default:
-      //unhandled action, just send back the text
+      // unhandled action, just send back the text
       handleMessages(messages, sender);
   }
 }
