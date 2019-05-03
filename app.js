@@ -447,6 +447,8 @@ function sendTextMessage(recipientId, text) {
       text: text
     }
   };
+
+  console.log("Sending an text message...")
   callSendAPI(messageData);
 }
 
@@ -468,6 +470,7 @@ function sendImageMessage(recipientId, imageUrl) {
     }
   };
 
+  console.log("Sending a image message...")
   callSendAPI(messageData);
 }
 
@@ -489,6 +492,7 @@ function sendGifMessage(recipientId) {
     }
   };
 
+  console.log("Sending an gif message...")
   callSendAPI(messageData);
 }
 
@@ -510,6 +514,7 @@ function sendAudioMessage(recipientId) {
     }
   };
 
+  console.log("Sending a audio message...")
   callSendAPI(messageData);
 }
 
@@ -532,6 +537,7 @@ function sendVideoMessage(recipientId, videoName) {
     }
   };
 
+  console.log("Sending an video message...")
   callSendAPI(messageData);
 }
 
@@ -554,6 +560,7 @@ function sendFileMessage(recipientId, fileName) {
     }
   };
 
+  console.log("Sending an file message...")
   callSendAPI(messageData);
 }
 
@@ -577,6 +584,7 @@ function sendButtonMessage(recipientId, text, buttons) {
     }
   };
 
+  console.log("Sending an button message...")
   callSendAPI(messageData);
 }
 
@@ -596,6 +604,7 @@ function sendGenericMessage(recipientId, elements) {
     }
   };
 
+  console.log("Sending an generic message...")
   callSendAPI(messageData);
 }
 
@@ -636,6 +645,7 @@ function sendReceiptMessage(
     }
   };
 
+  console.log("Sending an receipt message...")
   callSendAPI(messageData);
 }
 
@@ -654,6 +664,7 @@ function sendQuickReply(recipientId, text, replies, metadata) {
     }
   };
 
+  console.log("Sending an quick reply...")
   callSendAPI(messageData);
 }
 
@@ -668,6 +679,7 @@ function sendReadReceipt(recipientId) {
     sender_action: "mark_seen"
   };
 
+  console.log("Sending an read receipt...")
   callSendAPI(messageData);
 }
 
@@ -682,6 +694,7 @@ function sendTypingOn(recipientId) {
     sender_action: "typing_on"
   };
 
+  console.log("Sending an typing on...")
   callSendAPI(messageData);
 }
 
@@ -696,6 +709,7 @@ function sendTypingOff(recipientId) {
     sender_action: "typing_off"
   };
 
+  console.log("Sending an typing off...")
   callSendAPI(messageData);
 }
 
@@ -724,6 +738,7 @@ function sendAccountLinking(recipientId) {
     }
   };
 
+  console.log("Sending an account linking...")
   callSendAPI(messageData);
 }
 
