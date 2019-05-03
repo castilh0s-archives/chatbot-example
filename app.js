@@ -332,9 +332,6 @@ function handleDialogFlowAction(
         } else {
           handleMessages(messages, sender);
         }
-      } else {
-        console.log("Why i'm not defined?");
-        handleMessages(messages, sender);
       }
       break;
     default:
