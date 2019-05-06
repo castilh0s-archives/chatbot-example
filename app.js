@@ -7,8 +7,8 @@ const uuid = require("uuid");
 const pg = require("pg");
 
 const config = require("./config");
-const userDbServices = require("./database/user");
-const colorsDbServices = require("./database/colors");
+const userDbServices = require("./db-services/user");
+const colorsDbServices = require("./db-services/colors");
 
 const app = express();
 
