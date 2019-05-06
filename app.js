@@ -579,7 +579,7 @@ function sendTextMessage(recipientId, text) {
     }
   };
 
-  console.log("Sending an text message...");
+  console.log("Sending a text message...");
   callSendAPI(messageData);
 }
 
@@ -601,7 +601,7 @@ function sendImageMessage(recipientId, imageUrl) {
     }
   };
 
-  console.log("Sending a image message...");
+  console.log("Sending an image message...");
   callSendAPI(messageData);
 }
 
@@ -623,7 +623,7 @@ function sendGifMessage(recipientId) {
     }
   };
 
-  console.log("Sending an gif message...");
+  console.log("Sending a gif message...");
   callSendAPI(messageData);
 }
 
@@ -645,7 +645,7 @@ function sendAudioMessage(recipientId) {
     }
   };
 
-  console.log("Sending a audio message...");
+  console.log("Sending an audio message...");
   callSendAPI(messageData);
 }
 
@@ -668,7 +668,7 @@ function sendVideoMessage(recipientId, videoName) {
     }
   };
 
-  console.log("Sending an video message...");
+  console.log("Sending a video message...");
   callSendAPI(messageData);
 }
 
@@ -691,7 +691,7 @@ function sendFileMessage(recipientId, fileName) {
     }
   };
 
-  console.log("Sending an file message...");
+  console.log("Sending a file message...");
   callSendAPI(messageData);
 }
 
@@ -715,7 +715,7 @@ function sendButtonMessage(recipientId, text, buttons) {
     }
   };
 
-  console.log("Sending an button message...");
+  console.log("Sending a button message...");
   callSendAPI(messageData);
 }
 
@@ -735,7 +735,7 @@ function sendGenericMessage(recipientId, elements) {
     }
   };
 
-  console.log("Sending an generic message...");
+  console.log("Sending a generic message...");
   callSendAPI(messageData);
 }
 
@@ -776,7 +776,7 @@ function sendReceiptMessage(
     }
   };
 
-  console.log("Sending an receipt message...");
+  console.log("Sending a receipt message...");
   callSendAPI(messageData);
 }
 
@@ -795,7 +795,7 @@ function sendQuickReply(recipientId, text, replies, metadata) {
     }
   };
 
-  console.log("Sending an quick reply...");
+  console.log("Sending a quick reply...");
   callSendAPI(messageData);
 }
 
@@ -810,7 +810,7 @@ function sendReadReceipt(recipientId) {
     sender_action: "mark_seen"
   };
 
-  console.log("Sending an read receipt...");
+  console.log("Sending a read receipt...");
   callSendAPI(messageData);
 }
 
@@ -825,7 +825,7 @@ function sendTypingOn(recipientId) {
     sender_action: "typing_on"
   };
 
-  console.log("Sending an typing on...");
+  console.log("Sending a typing on...");
   callSendAPI(messageData);
 }
 
@@ -840,7 +840,7 @@ function sendTypingOff(recipientId) {
     sender_action: "typing_off"
   };
 
-  console.log("Sending an typing off...");
+  console.log("Sending a typing off...");
   callSendAPI(messageData);
 }
 
