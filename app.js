@@ -7,8 +7,8 @@ const uuid = require("uuid");
 const pg = require("pg");
 
 const config = require("./config");
-const userServices = require("./services/user");
-const colorsServices = require("./services/colors");
+const userDbServices = require("./database/user");
+const colorsDbServices = require("./database/colors");
 
 const app = express();
 
@@ -177,7 +177,7 @@ function setSessionAndUser(senderID) {
   }
 
   if (!usersMap.has(senderID)) {
-    userServices.addUser(function(user) {
+    userDbServices.addUser(function(user) {
       usersMap.set(senderID, user);
     }, senderID);
   }
@@ -398,7 +398,7 @@ function handleDialogFlowAction(
       }
       break;
     case "iphone_colors":
-      colorsServices.readAllColors(function(allColors) {
+      colorsDbServices.readAllColors(function(allColors) {
         let allColorsString = allColors.join(", ");
         let reply = `${
           parameters.fields["iphone"].stringValue
@@ -408,7 +408,7 @@ function handleDialogFlowAction(
       });
       break;
     case "iphone_colors.favourite":
-      colorsServices.updateUserColor(
+      colorsDbServices.updateUserColor(
         parameters.fields["color"].stringValue,
         sender
       );
@@ -417,7 +417,7 @@ function handleDialogFlowAction(
       sendTextMessage(sender, reply);
       break;
     case "buy-iphone":
-      colorsServices.readUserColor(function(color) {
+      colorsDbServices.readUserColor(function(color) {
         let reply;
         if (color === "") {
           reply = "In what color would you like to have it?";
