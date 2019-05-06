@@ -403,6 +403,8 @@ function handleDialogFlowAction(
         let reply = `${
           parameters.fields["iphone"].stringValue
         } is available in ${allColorsString}. What's your favourite color?`;
+
+        sendTextMessage(sender, reply);
       });
       break;
     default:
