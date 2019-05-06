@@ -41,6 +41,9 @@ if (!config.EMAIL_FROM) {
 if (!config.EMAIL_TO) {
   throw new Error("missing EMAIL_TO");
 }
+if (!config.WEATHER_API_KEY) {
+  throw new Error("missing WEATHER_API_KEY");
+}
 
 app.set("port", process.env.PORT || 5000);
 
@@ -332,6 +335,45 @@ function handleDialogFlowAction(
         } else {
           handleMessages(messages, sender);
         }
+      }
+      break;
+    case "get-dash-weather":
+      if (
+        parameters.fields.hasOwnProperty("geo-city") &&
+        parameters.fields["geo-city"].stringValue != ""
+      ) {
+        request(
+          {
+            url: "http://api.openweathermap.org/data/2.5/weather",
+            qs: {
+              appid: config.WEATHER_API_KEY,
+              q: parameters.fields["geo-city"].stringValue
+            }
+          },
+          function(error, response, body) {
+            if (response.statusCode === 200) {
+              let weather = JSON.parse(body);
+              if (weather.hasOwnProperty("weather")) {
+                let reply = `${messages[0].text.text} ${
+                  weather["weather"][0]["description"]
+                }`;
+                sendTextMessage(sender, reply);
+              } else {
+                sendTextMessage(
+                  sender,
+                  `No weather forecast available for ${
+                    parameters.fields["geo-city"].stringValue
+                  }`
+                );
+              }
+            } else {
+              console.log("OpenWeatherMap Error:", error);
+              sendTextMessage(sender, "Weather forecast is not available");
+            }
+          }
+        );
+      } else {
+        handleMessages(messages, sender);
       }
       break;
     default:
