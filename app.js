@@ -416,6 +416,17 @@ function handleDialogFlowAction(
       let reply = "Oh, I like it, too. I'll remember that.";
       sendTextMessage(sender, reply);
       break;
+    case: "buy-iphone":
+      colors.readUserColor(function(color) {
+        let reply;
+        if (color === '') {
+          reply = "In what color would you like to have it?";
+        } else {
+          reply = `Would you like to order it in your favourite color ${color}?`;
+        }
+        sendTextMessage(sender, reply);
+      }, sender)
+      break;
     default:
       // unhandled action, just send back the text
       handleMessages(messages, sender);
