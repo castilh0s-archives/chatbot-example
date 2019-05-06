@@ -358,7 +358,7 @@ function handleDialogFlowAction(
         }
       }
       break;
-    case "get-dash-weather":
+    case "get_weather":
       if (
         parameters.fields.hasOwnProperty("geo-city") &&
         parameters.fields["geo-city"].stringValue != ""
@@ -397,7 +397,7 @@ function handleDialogFlowAction(
         handleMessages(messages, sender);
       }
       break;
-    case "iphone-colors":
+    case "iphone_colors":
       colorsServices.readAllColors(function(allColors) {
         let allColorsString = allColors.join(", ");
         let reply = `${
