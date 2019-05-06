@@ -407,6 +407,15 @@ function handleDialogFlowAction(
         sendTextMessage(sender, reply);
       });
       break;
+    case "iphone_colors.favourite":
+      colorsServices.updateUserColor(
+        parameters.fields["color"].stringValue,
+        sender
+      );
+
+      let reply = "Oh, I like it, too. I'll remember that.";
+      sendTextMessage(sender, reply);
+      break;
     default:
       // unhandled action, just send back the text
       handleMessages(messages, sender);
