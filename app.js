@@ -1,12 +1,15 @@
 const dialogflow = require("dialogflow");
-const config = require("./config");
 const express = require("express");
 const crypto = require("crypto");
 const bodyParser = require("body-parser");
 const request = require("request");
-const app = express();
 const uuid = require("uuid");
 const pg = require("pg");
+
+const config = require("./config");
+const userServices = require("./services/user");
+
+const app = express();
 
 pg.defaults.ssl = true;
 
@@ -84,10 +87,11 @@ const sessionClient = new dialogflow.SessionsClient({
 });
 
 const sessionIds = new Map();
+const usersMap = new Map();
 
 // Index route
 app.get("/", function(req, res) {
-  res.send("Hello world, I am a chat bot");
+  res.send("Hello world, I am a chatbot");
 });
 
 // for Facebook verification
@@ -166,15 +170,25 @@ app.post("/webhook/", function(req, res) {
   }
 });
 
+function setSessionAndUser(senderID) {
+  if (!sessionIds.has(senderID)) {
+    sessionIds.set(senderID, uuid.v1());
+  }
+
+  if (!usersMap.has(senderID)) {
+    userService.addUser(function(user) {
+      usersMap.set(senderID, user);
+    }, senderID);
+  }
+}
+
 function receivedMessage(event) {
   let senderID = event.sender.id;
   let recipientID = event.recipient.id;
   let timeOfMessage = event.timestamp;
   let message = event.message;
 
-  if (!sessionIds.has(senderID)) {
-    sessionIds.set(senderID, uuid.v1());
-  }
+  setSessionAndUser(senderID);
 
   console.log(
     "Received message for user %d and page %d at %d.",
@@ -848,63 +862,34 @@ function sendAccountLinking(recipientId) {
   callSendAPI(messageData);
 }
 
-function greetUserText(userId) {
-  // first read user firstname
-  request(
-    {
-      uri: "https://graph.facebook.com/v2.7/" + userId,
-      qs: {
-        access_token: config.FB_PAGE_TOKEN
-      }
-    },
-    function(error, response, body) {
-      if (!error && response.statusCode == 200) {
-        var user = JSON.parse(body);
+async function resolveAfterXSeconds(x) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(x);
+    }, x * 1000);
+  });
+}
 
-        if (user.first_name) {
-          let pool = new pg.Pool(config.PG_CONFIG);
-          pool.connect(function(err, client, done) {
-            if (err) {
-              return console.error("Error acquiring client", err.stack);
-            }
-            let rows = [];
-            client.query(
-              `SELECT fb_id FROM users WHERE fb_id='${userId}' LIMIT 1`,
-              function(err, result) {
-                if (err) {
-                  console.log("Query error:", err);
-                } else {
-                  if (result.rows.length === 0) {
-                    let sql =
-                      "INSERT INTO users (fb_id, first_name, last_name, profile_pic) VALUES ($1, $2, $3, $4)";
-                    client.query(sql, [
-                      userId,
-                      user.first_name,
-                      user.last_name,
-                      user.profile_pic
-                    ]);
-                  }
-                }
-              }
-            );
-          });
-          pool.end();
+async function greetUserText(userId) {
+  let user = usersMap.get(userId);
+  if (!user) {
+    await resolveAfterXSeconds(2);
+    user = usersMap.get(userId);
+  }
 
-          sendTextMessage(
-            userId,
-            "Welcome " +
-              user.first_name +
-              "! " +
-              "I perform job interviews. What can I help you with?"
-          );
-        } else {
-          console.log("Cannot get data for FaceBook user with id:", userId);
-        }
-      } else {
-        console.error(response.error);
-      }
-    }
-  );
+  if (user) {
+    sendTextMessage(
+      userId,
+      `Welcome ${
+        user.first_name
+      }! I perform job interviews. What can I help you with?`
+    );
+  } else {
+    sendTextMessage(
+      userId,
+      "Welcome! I perform job interviews. What can I help you with?"
+    );
+  }
 }
 
 /*
@@ -960,6 +945,8 @@ function receivedPostback(event) {
   let senderID = event.sender.id;
   let recipientID = event.recipient.id;
   let timeOfPostback = event.timestamp;
+
+  setSessionAndUser(senderID);
 
   // The 'payload' param is a developer-defined field which is set in a postback
   // button for Structured Messages.
