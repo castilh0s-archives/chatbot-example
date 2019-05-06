@@ -416,7 +416,7 @@ function handleDialogFlowAction(
       let reply = "Oh, I like it, too. I'll remember that.";
       sendTextMessage(sender, reply);
       break;
-    case: "buy-iphone":
+    case "buy-iphone":
       colors.readUserColor(function(color) {
         let reply;
         if (color === '') {
