@@ -8,6 +8,7 @@ const pg = require("pg");
 
 const config = require("./config");
 const userServices = require("./services/user");
+const colorsServices = require("./services/colors");
 
 const app = express();
 
@@ -395,6 +396,14 @@ function handleDialogFlowAction(
       } else {
         handleMessages(messages, sender);
       }
+      break;
+    case "iphone-colors":
+      colorsServices.readAllColors(function(allColors) {
+        let allColorsString = allColors.join(", ");
+        let reply = `${
+          parameters.fields["iphone"].stringValue
+        } is available in ${allColorsString}. What's your favourite color?`;
+      });
       break;
     default:
       // unhandled action, just send back the text
