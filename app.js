@@ -5,16 +5,18 @@ const bodyParser = require("body-parser");
 const request = require("request");
 const uuid = require("uuid");
 const pg = require("pg");
-
 const config = require("./config");
-const userDbServices = require("./db-services/user");
-const colorsDbServices = require("./db-services/colors");
-
 const app = express();
 
 pg.defaults.ssl = true;
 
-// Messenger API parameters
+const userService = require("./services/user");
+const colorsService = require("./services/colors");
+const weatherService = require("./services/weather-service");
+const jobApplicationService = require("./services/job-application-service");
+const dialogflowService = require("./services/dialogflow-service");
+const fbService = require("./services/fb-service");
+
 if (!config.FB_PAGE_TOKEN) {
   throw new Error("missing FB_PAGE_TOKEN");
 }
@@ -60,7 +62,7 @@ app.set("port", process.env.PORT || 5000);
 //verify request came from facebook
 app.use(
   bodyParser.json({
-    verify: verifyRequestSignature
+    verify: fbService.verifyRequestSignature
   })
 );
 
@@ -97,7 +99,7 @@ app.get("/", function(req, res) {
 
 // for Facebook verification
 app.get("/webhook/", function(req, res) {
-  console.log("request");
+  console.log("Request");
   if (
     req.query["hub.mode"] === "subscribe" &&
     req.query["hub.verify_token"] === config.FB_VERIFY_TOKEN
@@ -115,7 +117,6 @@ app.get("/webhook/", function(req, res) {
  * for your page.
  *
  * https://developers.facebook.com/docs/messenger-platform/product-overview/setup#subscribe_app
- *
  */
 app.post("/webhook/", function(req, res) {
   let data = req.body;
@@ -123,42 +124,29 @@ app.post("/webhook/", function(req, res) {
 
   // Make sure this is a page subscription
   if (data.object == "page") {
-    console.log("Yes, the object is a page...");
-
     // Iterate over each entry
     // There may be multiple if batched
     data.entry.forEach(function(pageEntry) {
       let pageID = pageEntry.id;
       let timeOfEvent = pageEntry.time;
 
-      console.log(`Page ID: ${pageID}`);
-      console.log(`Time of Event: ${timeOfEvent}`);
-
       // Iterate over each messaging event
       pageEntry.messaging.forEach(function(messagingEvent) {
-        console.log(`Messaging event: ${JSON.stringify(messagingEvent)}`);
-
         if (messagingEvent.optin) {
-          console.log("Received authentication");
           receivedAuthentication(messagingEvent);
         } else if (messagingEvent.message) {
-          console.log("Received message");
           receivedMessage(messagingEvent);
         } else if (messagingEvent.delivery) {
-          console.log("Received delivery confirmation");
           receivedDeliveryConfirmation(messagingEvent);
         } else if (messagingEvent.postback) {
-          console.log("Received postback");
           receivedPostback(messagingEvent);
         } else if (messagingEvent.read) {
-          console.log("Received message read");
           receivedMessageRead(messagingEvent);
         } else if (messagingEvent.account_linking) {
-          console.log("Received account link");
           receivedAccountLink(messagingEvent);
         } else {
           console.log(
-            "Webhook received unknown messagingEvent: ",
+            "Webhook received unknown messagingEvent:",
             messagingEvent
           );
         }
@@ -177,7 +165,7 @@ function setSessionAndUser(senderID) {
   }
 
   if (!usersMap.has(senderID)) {
-    userDbServices.addUser(function(user) {
+    userService.addUser(function(user) {
       usersMap.set(senderID, user);
     }, senderID);
   }
@@ -191,13 +179,8 @@ function receivedMessage(event) {
 
   setSessionAndUser(senderID);
 
-  console.log(
-    "Received message for user %d and page %d at %d.",
-    senderID,
-    recipientID,
-    timeOfMessage
-  );
-  console.log("Message: " + JSON.stringify(message));
+  // console.log("Received message for user %d and page %d at %d with message:", senderID, recipientID, timeOfMessage);
+  // console.log(JSON.stringify(message));
 
   let isEcho = message.is_echo;
   let messageId = message.mid;
@@ -218,10 +201,8 @@ function receivedMessage(event) {
   }
 
   if (messageText) {
-    console.log("Sending to DialogFlow");
     sendToDialogFlow(senderID, messageText);
   } else if (messageAttachments) {
-    console.log("Handling message attachments");
     handleMessageAttachments(messageAttachments, senderID);
   }
 }
@@ -260,13 +241,8 @@ function handleDialogFlowAction(
   contexts,
   parameters
 ) {
-  console.log("Handling action:", action);
   switch (action) {
     case "detailed-application":
-      console.log("This is the context:", JSON.stringify(contexts[0]));
-      console.log("Ok, here we go...");
-      console.log("Context is defined?", isDefined(contexts[0]));
-      console.log("");
       if (
         isDefined(contexts[0]) &&
         (contexts[0].name.includes("job_application") ||
@@ -274,7 +250,6 @@ function handleDialogFlowAction(
           contexts[0].name.includes("dialog_context")) &&
         contexts[0].parameters
       ) {
-        console.log("I'm a job_application");
         let phone_number =
           isDefined(contexts[0].parameters.fields["phone-number"]) &&
           contexts[0].parameters.fields["phone-number"] != ""
@@ -307,7 +282,6 @@ function handleDialogFlowAction(
           previous_job != "" &&
           years_of_experience == ""
         ) {
-          console.log("Years of experience quick replies");
           let replies = [
             {
               content_type: "text",
@@ -334,7 +308,6 @@ function handleDialogFlowAction(
           years_of_experience != "" &&
           job_vacancy != ""
         ) {
-          console.log("Creating the e-mail body");
           let emailContent =
             "A new job enquiery from " +
             user_name +
@@ -398,7 +371,7 @@ function handleDialogFlowAction(
       }
       break;
     case "iphone_colors":
-      colorsDbServices.readAllColors(function(allColors) {
+      colorsService.readAllColors(function(allColors) {
         let allColorsString = allColors.join(", ");
         let reply = `${
           parameters.fields["iphone"].stringValue
@@ -408,7 +381,7 @@ function handleDialogFlowAction(
       });
       break;
     case "iphone_colors.favourite":
-      colorsDbServices.updateUserColor(
+      colorsService.updateUserColor(
         parameters.fields["color"].stringValue,
         sender
       );
@@ -417,7 +390,7 @@ function handleDialogFlowAction(
       sendTextMessage(sender, reply);
       break;
     case "buy-iphone":
-      colorsDbServices.readUserColor(function(color) {
+      colorsService.readUserColor(function(color) {
         let reply;
         if (color === "") {
           reply = "In what color would you like to have it?";
@@ -527,7 +500,6 @@ function handleMessages(messages, sender) {
 }
 
 function handleDialogFlowResponse(sender, response) {
-  console.log("Handling DialogFlow response...");
   let responseText = response.fulfillmentMessages.fulfillmentText;
 
   let messages = response.fulfillmentMessages;
@@ -538,13 +510,10 @@ function handleDialogFlowResponse(sender, response) {
   sendTypingOff(sender);
 
   if (isDefined(action)) {
-    console.log("Handling DialogFlow action");
     handleDialogFlowAction(sender, action, messages, contexts, parameters);
   } else if (isDefined(messages)) {
-    console.log("Handling messages");
     handleMessages(messages, sender);
   } else if (responseText == "" && !isDefined(action)) {
-    console.log("Sending text message");
     //dialogflow could not evaluate input.
     sendTextMessage(
       sender,
@@ -581,11 +550,9 @@ async function sendToDialogFlow(sender, textString, params) {
     const responses = await sessionClient.detectIntent(request);
 
     const result = responses[0].queryResult;
-    console.log("DialogFlow result response:", JSON.stringify(result));
     handleDialogFlowResponse(sender, result);
   } catch (e) {
-    console.log("error");
-    console.log(e);
+    console.log("error", e);
   }
 }
 
@@ -599,7 +566,6 @@ function sendTextMessage(recipientId, text) {
     }
   };
 
-  console.log("Sending a text message...");
   callSendAPI(messageData);
 }
 
@@ -621,7 +587,6 @@ function sendImageMessage(recipientId, imageUrl) {
     }
   };
 
-  console.log("Sending an image message...");
   callSendAPI(messageData);
 }
 
@@ -643,7 +608,6 @@ function sendGifMessage(recipientId) {
     }
   };
 
-  console.log("Sending a gif message...");
   callSendAPI(messageData);
 }
 
@@ -665,7 +629,6 @@ function sendAudioMessage(recipientId) {
     }
   };
 
-  console.log("Sending an audio message...");
   callSendAPI(messageData);
 }
 
@@ -688,7 +651,6 @@ function sendVideoMessage(recipientId, videoName) {
     }
   };
 
-  console.log("Sending a video message...");
   callSendAPI(messageData);
 }
 
@@ -711,7 +673,6 @@ function sendFileMessage(recipientId, fileName) {
     }
   };
 
-  console.log("Sending a file message...");
   callSendAPI(messageData);
 }
 
@@ -735,7 +696,6 @@ function sendButtonMessage(recipientId, text, buttons) {
     }
   };
 
-  console.log("Sending a button message...");
   callSendAPI(messageData);
 }
 
@@ -755,7 +715,6 @@ function sendGenericMessage(recipientId, elements) {
     }
   };
 
-  console.log("Sending a generic message...");
   callSendAPI(messageData);
 }
 
@@ -796,7 +755,6 @@ function sendReceiptMessage(
     }
   };
 
-  console.log("Sending a receipt message...");
   callSendAPI(messageData);
 }
 
@@ -815,7 +773,6 @@ function sendQuickReply(recipientId, text, replies, metadata) {
     }
   };
 
-  console.log("Sending a quick reply...");
   callSendAPI(messageData);
 }
 
@@ -830,7 +787,6 @@ function sendReadReceipt(recipientId) {
     sender_action: "mark_seen"
   };
 
-  console.log("Sending a read receipt...");
   callSendAPI(messageData);
 }
 
@@ -845,7 +801,6 @@ function sendTypingOn(recipientId) {
     sender_action: "typing_on"
   };
 
-  console.log("Sending a typing on...");
   callSendAPI(messageData);
 }
 
@@ -860,7 +815,6 @@ function sendTypingOff(recipientId) {
     sender_action: "typing_off"
   };
 
-  console.log("Sending a typing off...");
   callSendAPI(messageData);
 }
 
@@ -889,7 +843,6 @@ function sendAccountLinking(recipientId) {
     }
   };
 
-  console.log("Sending an account linking...");
   callSendAPI(messageData);
 }
 
@@ -1137,7 +1090,6 @@ function verifyRequestSignature(req, res, buf) {
 }
 
 function sendEmail(subject, content) {
-  console.log("Sending e-mail...");
   const sgMail = require("@sendgrid/mail");
   sgMail.setApiKey(config.SENDGRID_API_KEY);
 
@@ -1150,7 +1102,6 @@ function sendEmail(subject, content) {
   };
 
   sgMail.send(msg);
-  console.log("E-mail send!");
 }
 
 function isDefined(obj) {
