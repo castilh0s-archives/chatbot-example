@@ -15,7 +15,7 @@ const colorsService = require("./services/colors");
 const weatherService = require("./services/weather");
 const jobApplicationService = require("./services/job-application");
 const dialogflowService = require("./services/dialogflow");
-const fbService = require("./services/fb-service");
+const fbService = require("./services/facebook");
 
 if (!config.FB_PAGE_TOKEN) {
   throw new Error("missing FB_PAGE_TOKEN");
