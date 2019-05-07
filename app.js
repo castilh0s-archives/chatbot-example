@@ -484,6 +484,14 @@ function receivedPostback(event) {
     case "GET_STARTED":
       greetUserText(senderID);
       break;
+    case "JOB_APPLY":
+      dialogflowService.sendEventToDialogFlow(
+        sessionIds,
+        handleDialogFlowResponse,
+        senderID,
+        "JOB_OPENINGS"
+      );
+      break;
     default:
       fbService.sendTextMessage(
         senderID,
