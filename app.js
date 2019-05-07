@@ -12,9 +12,9 @@ pg.defaults.ssl = true;
 
 const userService = require("./services/user");
 const colorsService = require("./services/colors");
-const weatherService = require("./services/weather-service");
-const jobApplicationService = require("./services/job-application-service");
-const dialogflowService = require("./services/dialogflow-service");
+const weatherService = require("./services/weather");
+const jobApplicationService = require("./services/job-application");
+const dialogflowService = require("./services/dialogflow");
 const fbService = require("./services/fb-service");
 
 if (!config.FB_PAGE_TOKEN) {
